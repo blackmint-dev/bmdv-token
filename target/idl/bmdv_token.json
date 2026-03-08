@@ -1,0 +1,181 @@
+{
+  "address": "F8VBE7D9aTGysUCWnFQNjgFdM8BmEVcs9UGTJYtLCvJ7",
+  "metadata": {
+    "name": "bmdv_token",
+    "version": "0.1.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "initialize_mint",
+      "discriminator": [209, 42, 195, 4, 129, 85, 209, 44],
+      "accounts": [
+        { "name": "mint_state", "writable": true },
+        { "name": "mint", "writable": true, "signer": true },
+        { "name": "escrow", "writable": true },
+        { "name": "studio_wallet" },
+        { "name": "charity_wallet" },
+        { "name": "lp_wallet" },
+        { "name": "authority", "writable": true, "signer": true },
+        { "name": "system_program", "address": "11111111111111111111111111111111" },
+        { "name": "token_program", "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" },
+        { "name": "rent", "address": "SysvarRent111111111111111111111111111111111" }
+      ],
+      "args": [
+        { "name": "token_name", "type": "string" },
+        { "name": "token_symbol", "type": "string" },
+        { "name": "total_supply", "type": "u64" },
+        { "name": "max_mintable_supply", "type": "u64" },
+        { "name": "mint_price", "type": "u64" },
+        { "name": "mint_start", "type": "i64" },
+        { "name": "mint_end", "type": "i64" },
+        { "name": "max_per_wallet", "type": "u64" },
+        { "name": "studio_percent", "type": "u8" },
+        { "name": "charity_percent", "type": "u8" },
+        { "name": "lp_percent", "type": "u8" }
+      ]
+    },
+    {
+      "name": "mint_tokens",
+      "discriminator": [59, 132, 24, 246, 122, 39, 8, 243],
+      "accounts": [
+        { "name": "mint_state", "writable": true },
+        { "name": "mint", "writable": true },
+        { "name": "escrow", "writable": true },
+        { "name": "user_mint_record", "writable": true },
+        { "name": "user_token_account", "writable": true },
+        { "name": "user", "writable": true, "signer": true },
+        { "name": "system_program", "address": "11111111111111111111111111111111" },
+        { "name": "token_program", "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" },
+        { "name": "associated_token_program", "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL" },
+        { "name": "rent", "address": "SysvarRent111111111111111111111111111111111" }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "close_mint",
+      "discriminator": [149, 251, 157, 212, 65, 181, 235, 129],
+      "accounts": [
+        { "name": "mint_state", "writable": true },
+        { "name": "authority", "signer": true }
+      ],
+      "args": []
+    },
+    {
+      "name": "finalize_supply",
+      "discriminator": [35, 90, 28, 113, 107, 87, 244, 253],
+      "accounts": [
+        { "name": "mint_state", "writable": true },
+        { "name": "mint", "writable": true },
+        { "name": "lp_token_account", "writable": true },
+        { "name": "lp_wallet" },
+        { "name": "authority", "writable": true, "signer": true },
+        { "name": "system_program", "address": "11111111111111111111111111111111" },
+        { "name": "token_program", "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA" },
+        { "name": "associated_token_program", "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL" },
+        { "name": "rent", "address": "SysvarRent111111111111111111111111111111111" }
+      ],
+      "args": []
+    },
+    {
+      "name": "execute_split",
+      "discriminator": [6, 45, 171, 40, 49, 129, 23, 89],
+      "accounts": [
+        { "name": "mint_state", "writable": true },
+        { "name": "escrow", "writable": true },
+        { "name": "studio_wallet", "writable": true },
+        { "name": "charity_wallet", "writable": true },
+        { "name": "lp_wallet", "writable": true },
+        { "name": "authority", "signer": true }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    { "name": "EscrowState", "discriminator": [19, 90, 148, 111, 55, 130, 229, 108] },
+    { "name": "MintState", "discriminator": [81, 17, 143, 120, 23, 57, 22, 117] },
+    { "name": "UserMintRecord", "discriminator": [120, 250, 207, 149, 49, 124, 10, 58] }
+  ],
+  "types": [
+    {
+      "name": "EscrowState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "MintState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "authority", "type": "pubkey" },
+          { "name": "mint", "type": "pubkey" },
+          { "name": "token_name", "type": "string" },
+          { "name": "token_symbol", "type": "string" },
+          { "name": "total_supply", "type": "u64" },
+          { "name": "max_mintable_supply", "type": "u64" },
+          { "name": "minted_supply", "type": "u64" },
+          { "name": "mint_price", "type": "u64" },
+          { "name": "mint_start", "type": "i64" },
+          { "name": "mint_end", "type": "i64" },
+          { "name": "max_per_wallet", "type": "u64" },
+          { "name": "studio_wallet", "type": "pubkey" },
+          { "name": "charity_wallet", "type": "pubkey" },
+          { "name": "lp_wallet", "type": "pubkey" },
+          { "name": "studio_percent", "type": "u8" },
+          { "name": "charity_percent", "type": "u8" },
+          { "name": "lp_percent", "type": "u8" },
+          { "name": "is_closed", "type": "bool" },
+          { "name": "is_supply_finalized", "type": "bool" },
+          { "name": "is_split_executed", "type": "bool" },
+          { "name": "bump", "type": "u8" },
+          { "name": "escrow_bump", "type": "u8" }
+        ]
+      }
+    },
+    {
+      "name": "UserMintRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "user", "type": "pubkey" },
+          { "name": "amount_minted", "type": "u64" },
+          { "name": "bump", "type": "u8" }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    { "code": 6000, "name": "InvalidMintWindow", "msg": "Mint window end must be after start" },
+    { "code": 6001, "name": "InvalidSupply", "msg": "Total supply must be greater than zero" },
+    { "code": 6002, "name": "InvalidPrice", "msg": "Mint price must be greater than zero" },
+    { "code": 6003, "name": "InvalidLimit", "msg": "Max per wallet must be greater than zero" },
+    { "code": 6004, "name": "InvalidAmount", "msg": "Mint amount must be greater than zero" },
+    { "code": 6005, "name": "NameTooLong", "msg": "Token name exceeds 32 characters" },
+    { "code": 6006, "name": "SymbolTooLong", "msg": "Token symbol exceeds 10 characters" },
+    { "code": 6007, "name": "InvalidPercentages", "msg": "Percentages must add up to 100" },
+    { "code": 6008, "name": "DuplicateWallets", "msg": "Split wallet addresses must all be distinct" },
+    { "code": 6009, "name": "MintNotStarted", "msg": "Mint has not started yet" },
+    { "code": 6010, "name": "MintEnded", "msg": "Mint window has ended" },
+    { "code": 6011, "name": "MintClosed", "msg": "Mint has been closed" },
+    { "code": 6012, "name": "SupplyExhausted", "msg": "Total supply exhausted" },
+    { "code": 6013, "name": "ExceedsWalletLimit", "msg": "Exceeds maximum allowed per wallet" },
+    { "code": 6014, "name": "Overflow", "msg": "Arithmetic overflow" },
+    { "code": 6015, "name": "Unauthorized", "msg": "Unauthorized" },
+    { "code": 6016, "name": "MintStillActive", "msg": "Mint is still active" },
+    { "code": 6017, "name": "AlreadyClosed", "msg": "Mint already closed" },
+    { "code": 6018, "name": "MintNotClosed", "msg": "Mint must be closed first" },
+    { "code": 6019, "name": "SupplyAlreadyFinalized", "msg": "Supply already finalized" },
+    { "code": 6020, "name": "SupplyNotFinalized", "msg": "Supply must be finalized before split" },
+    { "code": 6021, "name": "AlreadyExecuted", "msg": "Split has already been executed" },
+    { "code": 6022, "name": "InvalidMint", "msg": "Mint account does not match stored address" },
+    { "code": 6023, "name": "InvalidWallet", "msg": "Wallet does not match stored address" },
+    { "code": 6024, "name": "EmptyEscrow", "msg": "Escrow has no distributable funds" },
+    { "code": 6025, "name": "InvalidMaxMintable", "msg": "Max mintable supply must be > 0 and <= total supply" }
+  ]
+}
