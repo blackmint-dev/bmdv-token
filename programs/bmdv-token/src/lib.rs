@@ -1,4 +1,8 @@
 use anchor_lang::prelude::*;
+use anchor_spl::metadata::{
+    create_metadata_accounts_v3, CreateMetadataAccountsV3, Metadata,
+    mpl_token_metadata::types::DataV2,
+};
 use anchor_spl::token::{self, Mint, MintTo, Token, TokenAccount};
 
 declare_id!("F8VBE7D9aTGysUCWnFQNjgFdM8BmEVcs9UGTJYtLCvJ7");
@@ -379,6 +383,67 @@ pub mod bmdv_token {
 
         Ok(())
     }
+
+    /// Create token metadata via CPI to Metaplex Token Metadata program.
+    /// Must be called after initialize_mint and before finalize_supply
+    /// (which revokes mint authority, making metadata creation impossible).
+    pub fn create_token_metadata(
+        ctx: Context<CreateTokenMetadata>,
+        name: String,
+        symbol: String,
+        uri: String,
+    ) -> Result<()> {
+        let mint_state = &ctx.accounts.mint_state;
+
+        require!(
+            ctx.accounts.authority.key() == mint_state.authority,
+            ErrorCode::Unauthorized
+        );
+        require!(
+            !mint_state.is_supply_finalized,
+            ErrorCode::MetadataAfterFinalize
+        );
+
+        let mint_key = mint_state.mint;
+        let seeds = &[
+            b"mint-state",
+            mint_key.as_ref(),
+            &[mint_state.bump],
+        ];
+        let signer = &[&seeds[..]];
+
+        create_metadata_accounts_v3(
+            CpiContext::new_with_signer(
+                ctx.accounts.token_metadata_program.to_account_info(),
+                CreateMetadataAccountsV3 {
+                    metadata: ctx.accounts.metadata_account.to_account_info(),
+                    mint: ctx.accounts.mint.to_account_info(),
+                    mint_authority: ctx.accounts.mint_state.to_account_info(),
+                    update_authority: ctx.accounts.authority.to_account_info(),
+                    payer: ctx.accounts.authority.to_account_info(),
+                    system_program: ctx.accounts.system_program.to_account_info(),
+                    rent: ctx.accounts.rent.to_account_info(),
+                },
+                signer,
+            ),
+            DataV2 {
+                name,
+                symbol,
+                uri,
+                seller_fee_basis_points: 0,
+                creators: None,
+                collection: None,
+                uses: None,
+            },
+            true,  // is_mutable (can revoke update authority later)
+            true,  // update_authority_is_signer
+            None,  // collection_details
+        )?;
+
+        msg!("Token metadata created via Metaplex");
+
+        Ok(())
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -572,6 +637,32 @@ pub struct ExecuteSplit<'info> {
     pub authority: Signer<'info>,
 }
 
+#[derive(Accounts)]
+pub struct CreateTokenMetadata<'info> {
+    #[account(
+        seeds = [b"mint-state", mint.key().as_ref()],
+        bump = mint_state.bump,
+    )]
+    pub mint_state: Account<'info, MintState>,
+
+    #[account(
+        constraint = mint.key() == mint_state.mint @ ErrorCode::InvalidMint
+    )]
+    pub mint: Account<'info, Mint>,
+
+    /// CHECK: Created by Metaplex via CPI — PDA derived from
+    /// ["metadata", token_metadata_program, mint] by the Metaplex program
+    #[account(mut)]
+    pub metadata_account: UncheckedAccount<'info>,
+
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    pub token_metadata_program: Program<'info, Metadata>,
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+}
+
 // ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
@@ -709,4 +800,6 @@ pub enum ErrorCode {
     EmptyEscrow,
     #[msg("Max mintable supply must be > 0 and <= total supply")]
     InvalidMaxMintable,
+    #[msg("Cannot create metadata after supply is finalized (mint authority revoked)")]
+    MetadataAfterFinalize,
 }

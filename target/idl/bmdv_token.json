@@ -91,6 +91,24 @@
         { "name": "authority", "signer": true }
       ],
       "args": []
+    },
+    {
+      "name": "create_token_metadata",
+      "discriminator": [221, 80, 176, 37, 153, 188, 160, 68],
+      "accounts": [
+        { "name": "mint_state" },
+        { "name": "mint" },
+        { "name": "metadata_account", "writable": true },
+        { "name": "authority", "writable": true, "signer": true },
+        { "name": "token_metadata_program", "address": "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s" },
+        { "name": "system_program", "address": "11111111111111111111111111111111" },
+        { "name": "rent", "address": "SysvarRent111111111111111111111111111111111" }
+      ],
+      "args": [
+        { "name": "name", "type": "string" },
+        { "name": "symbol", "type": "string" },
+        { "name": "uri", "type": "string" }
+      ]
     }
   ],
   "accounts": [
@@ -176,6 +194,7 @@
     { "code": 6022, "name": "InvalidMint", "msg": "Mint account does not match stored address" },
     { "code": 6023, "name": "InvalidWallet", "msg": "Wallet does not match stored address" },
     { "code": 6024, "name": "EmptyEscrow", "msg": "Escrow has no distributable funds" },
-    { "code": 6025, "name": "InvalidMaxMintable", "msg": "Max mintable supply must be > 0 and <= total supply" }
+    { "code": 6025, "name": "InvalidMaxMintable", "msg": "Max mintable supply must be > 0 and <= total supply" },
+    { "code": 6026, "name": "MetadataAfterFinalize", "msg": "Cannot create metadata after supply is finalized (mint authority revoked)" }
   ]
 }
