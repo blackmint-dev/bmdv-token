@@ -5,7 +5,7 @@ use anchor_spl::metadata::{
 };
 use anchor_spl::token::{self, Mint, MintTo, Token, TokenAccount};
 
-declare_id!("F8VBE7D9aTGysUCWnFQNjgFdM8BmEVcs9UGTJYtLCvJ7");
+declare_id!("44H4NKaStH1xr7KyyfjMQLqfPUFxAHKHoh6E5MBCyFW3");
 
 pub const MAX_NAME_LEN: usize = 32;
 pub const MAX_SYMBOL_LEN: usize = 10;
@@ -464,7 +464,7 @@ pub struct InitializeMint<'info> {
     #[account(
         init,
         payer = authority,
-        mint::decimals = 9,
+        mint::decimals = 0,
         mint::authority = mint_state,
     )]
     pub mint: Account<'info, Mint>,
