@@ -5,10 +5,21 @@ use anchor_spl::metadata::{
 };
 use anchor_spl::token::{self, Mint, MintTo, Token, TokenAccount};
 
-declare_id!("44H4NKaStH1xr7KyyfjMQLqfPUFxAHKHoh6E5MBCyFW3");
+declare_id!("7ERf7DpQVAEBvxx8LCiN7tat95HqbcqNgVamAsN8pBD5");
 
 pub const MAX_NAME_LEN: usize = 32;
 pub const MAX_SYMBOL_LEN: usize = 10;
+
+/// SPL token decimals used for all tokens deployed via this program.
+/// Fungible meme tokens MUST have decimals > 0 so Metaplex's
+/// create_metadata_accounts_v3 classifies them as TokenStandard::Fungible
+/// rather than TokenStandard::FungibleAsset (which wallets render as NFTs).
+pub const TOKEN_DECIMALS: u8 = 9;
+
+/// Multiplier to convert whole tokens → SPL base units (10^TOKEN_DECIMALS).
+/// MintState tracks amounts in whole tokens everywhere; only the SPL
+/// `token::mint_to` CPI boundary needs to use base units.
+pub const DECIMAL_MULTIPLIER: u64 = 1_000_000_000;
 
 #[program]
 pub mod bmdv_token {
@@ -162,6 +173,14 @@ pub mod bmdv_token {
         ];
         let signer = &[&seeds[..]];
 
+        // Scale user-supplied whole tokens to SPL base units for the mint_to CPI.
+        // MintState tracks amounts in whole tokens (supply, limits, minted counts);
+        // SPL token::mint_to expects base units.
+        let base_units = (amount as u128)
+            .checked_mul(DECIMAL_MULTIPLIER as u128)
+            .and_then(|v| u64::try_from(v).ok())
+            .ok_or(ErrorCode::Overflow)?;
+
         token::mint_to(
             CpiContext::new_with_signer(
                 ctx.accounts.token_program.to_account_info(),
@@ -172,7 +191,7 @@ pub mod bmdv_token {
                 },
                 signer,
             ),
-            amount,
+            base_units,
         )?;
 
         // Update state with checked arithmetic
@@ -258,6 +277,12 @@ pub mod bmdv_token {
 
         // Mint remaining tokens to LP wallet (if any)
         if remaining > 0 {
+            // Same whole-token → base-unit scaling as mint_tokens.
+            let remaining_base_units = (remaining as u128)
+                .checked_mul(DECIMAL_MULTIPLIER as u128)
+                .and_then(|v| u64::try_from(v).ok())
+                .ok_or(ErrorCode::Overflow)?;
+
             token::mint_to(
                 CpiContext::new_with_signer(
                     ctx.accounts.token_program.to_account_info(),
@@ -268,7 +293,7 @@ pub mod bmdv_token {
                     },
                     signer,
                 ),
-                remaining,
+                remaining_base_units,
             )?;
 
             msg!("Minted {} remaining tokens to LP wallet", remaining);
@@ -464,7 +489,7 @@ pub struct InitializeMint<'info> {
     #[account(
         init,
         payer = authority,
-        mint::decimals = 0,
+        mint::decimals = 9,
         mint::authority = mint_state,
     )]
     pub mint: Account<'info, Mint>,
