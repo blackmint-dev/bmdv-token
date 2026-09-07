@@ -1,3 +1,12 @@
 node_modules/
-target/deploy/
 .anchor/
+
+# Cargo/Anchor build output. Ignore everything under target/ EXCEPT target/idl/,
+# which holds the hand-maintained 0.30.1-format IDL and IS tracked — it is part of
+# what this repo publishes for verification.
+#
+# Written as `target/*` + a negation rather than `target/`: git cannot re-include a
+# path whose parent directory is itself excluded, so a blanket `target/` would make
+# `git add target/idl/bmdv_token.json` fail on any future re-add.
+target/*
+!target/idl/
